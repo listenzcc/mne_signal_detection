@@ -4,6 +4,7 @@ import os
 import mne
 import numpy as np
 import matplotlib.pyplot as plt
+from pick_good_sensors import good_sensors
 
 smooth_kernel = 1/200+np.array(range(200))*0
 
@@ -48,6 +49,7 @@ def get_epochs(fname, train):
     raw = mne.io.read_raw_fif(fname, preload=True)
     picks = mne.pick_types(raw.info, meg=True, eeg=False,
                            eog=False, stim=False, exclude='bads')
+    sensors, picks = good_sensors(raw.ch_names)
     raw = mne.io.RawArray(smooth(raw.get_data(), picks), raw.info)
     raw.filter(freq_l, freq_h, fir_design='firwin')
     events = mne.find_events(raw)
