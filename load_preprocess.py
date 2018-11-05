@@ -49,7 +49,7 @@ def get_epochs(fname, train):
     raw = mne.io.read_raw_fif(fname, preload=True)
     picks = mne.pick_types(raw.info, meg=True, eeg=False,
                            eog=False, stim=False, exclude='bads')
-    sensors, picks = good_sensors(raw.ch_names)
+    # sensors, picks = good_sensors(raw.ch_names)
     raw = mne.io.RawArray(smooth(raw.get_data(), picks), raw.info)
     raw.filter(freq_l, freq_h, fir_design='firwin')
     events = mne.find_events(raw)

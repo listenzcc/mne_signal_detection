@@ -65,7 +65,7 @@ for j in range(len(fname_list)):
     data = scale(np.mean(data, 0)[np.newaxis, :])
     data_X[j], data_y[j] = get_Xy_from_data(data)
 
-test_id = 3
+test_id = 1
 X_train = []
 y_train = []
 X_test = []
