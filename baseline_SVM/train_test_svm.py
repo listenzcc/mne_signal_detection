@@ -42,7 +42,6 @@ def get_Xy_from_data(data, ranges=ranges,
         for j in range(left, right):
             X = vstack(X, data[:, :, j])
             y = vstack(y, id+np.zeros(shape[0]).reshape(shape[0], 1))
-    y = y.reshape(len(y))
     return X, y
 
 
@@ -65,7 +64,7 @@ for j in range(len(fname_list)):
     data = scale(np.mean(data, 0)[np.newaxis, :])
     data_X[j], data_y[j] = get_Xy_from_data(data)
 
-test_id = 1
+test_id = 4
 X_train = []
 y_train = []
 X_test = []
@@ -73,22 +72,19 @@ y_test = []
 for j in range(len(fname_list)):
     if j == test_id:
         X_test = vstack(X_test, data_X[j])
-        y = data_y[j].reshape(len(data_y[j]), 1)
-        y_test = vstack(y_test, y)
+        y_test = vstack(y_test, data_y[j])
         continue
 
     X_train = vstack(X_train, data_X[j])
-    y = data_y[j].reshape(len(data_y[j]), 1)
-    y_train = vstack(y_train, y)
+    y_train = vstack(y_train, data_y[j])
 
-pca = PCA(n_components=10)
-
-pca.fit(X_train)
-X_train = pca.fit_transform(X_train)
-X_test = pca.fit_transform(X_test)
+# pca = PCA(n_components=10)
+# pca.fit(X_train)
+# X_train = pca.fit_transform(X_train)
+# X_test = pca.fit_transform(X_test)
 
 clf = SVC(kernel='linear')
-clf.fit(X_train, y_train)
+clf.fit(X_train, np.ravel(y_train))
 
 fig, axes = plt.subplots(2, 1)
 
