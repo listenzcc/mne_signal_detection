@@ -27,7 +27,7 @@ def scale(data):
     return data
 
 
-ranges = [250, 350, 550, 700]
+ranges = [250, 350, 550, 650]
 range_id = [1, 2, 1]
 
 
@@ -51,6 +51,14 @@ def plot(X, y, axe, clf, title='title'):
     axe.plot(predict)
     prob = clf.predict_proba(X) - 1
     axe.plot(prob)
+    for j in range(0, len(y), 400):
+        axe.plot([j, j], list(axe.get_ylim()),
+                 color='gray')
+    y = np.ravel(y)
+    predict = np.ravel(predict)
+    acc = np.count_nonzero(
+        (y > 1) == (predict > 1))/len(y)
+    title += ', acc %.2f' % acc
     axe.set_title(title)
 
 
@@ -97,9 +105,9 @@ def train_clf(test_run, data_X=data_X, data_y=data_y):
         for k in range(len(ortids)):
             X_train = vstack(X_train, data_X[j][k])
             y_train = vstack(y_train, data_y[j][k])
-    clf = LogisticRegression(solver='saga',
-                             multi_class='multinomial',
-                             penalty='l1')
+    clf = LogisticRegression(multi_class='multinomial',
+                             solver='newton-cg',
+                             penalty='l2')
     clf.fit(X_train, np.ravel(y_train))
     return clf, X_test, y_test, X_train, y_train
 
