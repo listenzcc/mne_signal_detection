@@ -40,7 +40,8 @@ y = tf.nn.softmax(tf.matmul(h1, w2) + b2)
 # Loss
 cross_entropy = -tf.reduce_sum(y_*tf.log(y))
 # Training step, best speed 0.005
-train_step = tf.train.GradientDescentOptimizer(0.005).minimize(cross_entropy)
+# train_step = tf.train.GradientDescentOptimizer(0.005).minimize(cross_entropy)
+train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 
 
 def one_hot(label, total=7):
