@@ -62,6 +62,8 @@ def get_epochs(fname, train):
     return epochs
 
 
+'''
 epochs = get_epochs(fname=fname, train=train)
 epochs.plot(show=False)
 plt.show()
+'''
