@@ -6,7 +6,7 @@ import numpy as np
 import threading
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
-from tensorflow_network_cnn import train_CNN, test_CNN
+from tensorflow_network_cnn import train_CNN, test_CNN, restore_CNN
 sys.path.append('..')
 from load_preprocess import get_epochs
 
@@ -89,37 +89,41 @@ for j in range(len(fname_list)):
 
 fig, axes = plt.subplots(5, 1)
 
-# for test_run in range(5):
-test_run = 3
-# data prepare
-X_train = []
-y_train = []
-X_test = []
-y_test = []
-for j in range(len(fname_list)):
-    if j == test_run:
+save_path = os.path.join('model_save_path', 'QYJ_%d')
+model_name = 'CNNmodel'
+for test_run in range(5):
+    model_path = os.path.join(save_path % test_run, model_name)
+    # test_run = 3
+    # data prepare
+    X_train = []
+    y_train = []
+    X_test = []
+    y_test = []
+    for j in range(len(fname_list)):
+        if j == test_run:
+            for k in range(len(ortids)):
+                X_test = vstack(X_test, data_X[j][k])
+                y_test = vstack(y_test, data_y[j][k])
+            continue
         for k in range(len(ortids)):
-            X_test = vstack(X_test, data_X[j][k])
-            y_test = vstack(y_test, data_y[j][k])
-        continue
-    for k in range(len(ortids)):
-        X_train = vstack(X_train, data_X[j][k])
-        y_train = vstack(y_train, data_y[j][k])
+            X_train = vstack(X_train, data_X[j][k])
+            y_train = vstack(y_train, data_y[j][k])
 
-y_train = np.ravel(y_train)
-y_test = np.ravel(y_test)
+    y_train = np.ravel(y_train)
+    y_test = np.ravel(y_test)
 
-# CNN training and testing
-train_CNN(X_train, y_train-1)
-y_guess = test_CNN(X_test)
+    # CNN training and testing
+    # train_CNN(X_train, y_train-1, model_path=model_path)
+    restore_CNN(model_path=model_path)
+    y_guess = test_CNN(X_test)
 
-# Plot
-axe = axes[test_run]
-axe.plot(y_test)
-axe.plot(y_guess)
-acc = np.count_nonzero(
-    (y_test > 1) == (y_guess > 1))/len(y_test)
-title = '%d, acc %.2f' % (test_run, acc)
-axe.set_title(title)
+    # Plot
+    axe = axes[test_run]
+    axe.plot(y_test)
+    axe.plot(y_guess)
+    acc = np.count_nonzero(
+        (y_test > 1) == (y_guess > 1))/len(y_test)
+    title = '%d, acc %.2f' % (test_run, acc)
+    axe.set_title(title)
 
 plt.show()

@@ -35,29 +35,36 @@ y_ = tf.placeholder(tf.float32, shape=[None, 7])
 
 x_image = tf.reshape(x, [-1, 102, 40, 1])
 
-w_conv1 = weight_variable([1, 5, 1, 3])
-b_conv1 = bias_variable([3])
+
+def para_init():
+    w_conv1 = weight_variable([1, 5, 1, 3])
+    b_conv1 = bias_variable([3])
+
+    w_conv2 = weight_variable([1, 5, 3, 5])
+    b_conv2 = bias_variable([5])
+
+    w_fc1 = weight_variable([102*10*5, 1024])
+    b_fc1 = bias_variable([1024])
+
+    w_fc2 = weight_variable([1024, 7])
+    b_fc2 = bias_variable([7])
+
+    return w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2
+
+
+w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2 = para_init()
 
 h_conv1 = tf.nn.relu(conv2d(x_image, w_conv1) + b_conv1)
 h_pool1 = max_pool_1x2(h_conv1)
 
-w_conv2 = weight_variable([1, 5, 3, 5])
-b_conv2 = bias_variable([5])
-
 h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2) + b_conv2)
 h_pool2 = max_pool_1x2(h_conv2)
-
-w_fc1 = weight_variable([102*10*5, 1024])
-b_fc1 = bias_variable([1024])
 
 h_pool2_flat = tf.reshape(h_pool2, [-1, 102*10*5])
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, w_fc1) + b_fc1)
 
 keep_prob = tf.placeholder(tf.float32)
 h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
-
-w_fc2 = weight_variable([1024, 7])
-b_fc2 = bias_variable([7])
 
 y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, w_fc2) + b_fc2)
 
@@ -93,9 +100,12 @@ def next_batch(data, label, size):
     return batch
 
 
-def train_CNN(data, label, num=4000, size=2000):
+def train_CNN(data, label, num=4000, size=2000,
+              model_path='noname'):
+    w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2 = para_init()
     # Ready to go
     sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver()
     print('Training')
     for j in range(num+1):
         batch = next_batch(data, label, size=size)
@@ -105,6 +115,18 @@ def train_CNN(data, label, num=4000, size=2000):
             loss = sess.run(cross_entropy,
                             feed_dict=feed_dict)
             print('%d|%d, loss %f' % (j, num, loss / size))
+        if j % 500 == 0:
+            saver.save(sess, model_path,
+                       global_step=j,
+                       write_meta_graph=False)
+    saver.save(sess, model_path)
+
+
+def restore_CNN(model_path='noname'):
+    w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2 = para_init()
+    sess.run(tf.global_variables_initializer())
+    saver = tf.train.Saver()
+    saver.restore(sess, model_path)
 
 
 def test_CNN(data):

@@ -6,7 +6,7 @@ import numpy as np
 import threading
 import matplotlib.pyplot as plt
 from sklearn.linear_model import LogisticRegression
-from tensorflow_network_dnn import train_DNN, test_DNN
+from tensorflow_network_dnn import train_DNN, test_DNN, restore_DNN
 sys.path.append('..')
 from load_preprocess import get_epochs
 
@@ -89,7 +89,11 @@ for j in range(len(fname_list)):
 
 fig, axes = plt.subplots(5, 1)
 
+save_path = os.path.join('model_save_path', 'QYJ_%d')
+model_name = 'DNNmodel'
 for test_run in range(5):
+    model_path = os.path.join(save_path % test_run, model_name)
+    print(model_path)
     # data prepare
     X_train = []
     y_train = []
@@ -108,7 +112,8 @@ for test_run in range(5):
     y_train = np.ravel(y_train)
     y_test = np.ravel(y_test)
     # DNN training and testing
-    train_DNN(X_train, y_train-1)
+    # train_DNN(X_train, y_train-1, model_path=model_path)
+    restore_DNN(model_path=model_path+'')
     y_guess = test_DNN(X_test)
     # Plot
     axe = axes[test_run]
