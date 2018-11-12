@@ -37,16 +37,16 @@ x_image = tf.reshape(x, [-1, 102, 40, 1])
 
 
 def para_init():
-    w_conv1 = weight_variable([1, 5, 1, 3])
-    b_conv1 = bias_variable([3])
+    w_conv1 = weight_variable([1, 5, 1, 7])
+    b_conv1 = bias_variable([7])
 
-    w_conv2 = weight_variable([1, 5, 3, 5])
-    b_conv2 = bias_variable([5])
+    w_conv2 = weight_variable([1, 5, 7, 9])
+    b_conv2 = bias_variable([9])
 
-    w_fc1 = weight_variable([102*10*5, 1024])
-    b_fc1 = bias_variable([1024])
+    w_fc1 = weight_variable([102*10*9, 500])
+    b_fc1 = bias_variable([500])
 
-    w_fc2 = weight_variable([1024, 7])
+    w_fc2 = weight_variable([500, 7])
     b_fc2 = bias_variable([7])
 
     return w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2
@@ -60,7 +60,7 @@ h_pool1 = max_pool_1x2(h_conv1)
 h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2) + b_conv2)
 h_pool2 = max_pool_1x2(h_conv2)
 
-h_pool2_flat = tf.reshape(h_pool2, [-1, 102*10*5])
+h_pool2_flat = tf.reshape(h_pool2, [-1, 102*10*9])
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, w_fc1) + b_fc1)
 
 keep_prob = tf.placeholder(tf.float32)
@@ -68,7 +68,7 @@ h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 
 y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, w_fc2) + b_fc2)
 
-cross_entropy = -tf.reduce_sum(y_*tf.log(y_conv))
+cross_entropy = -tf.reduce_sum(y_*tf.log(y_conv+1e-10))
 train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -100,7 +100,7 @@ def next_batch(data, label, size):
     return batch
 
 
-def train_CNN(data, label, num=4000, size=2000,
+def train_CNN(data, label, num=5000, size=1000,
               model_path='noname'):
     w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2 = para_init()
     # Ready to go

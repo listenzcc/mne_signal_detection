@@ -60,7 +60,7 @@ def plot(X, y, axe, clf, title='title'):
 
 
 # Prepare filename QYJ, ZYF
-filedir = 'D:/BeidaShuju/rawdata/QYJ'
+filedir = 'D:/BeidaShuju/rawdata/ZYF'
 fname_training_list = list(os.path.join(
     filedir, 'MultiTraining_%d_raw_tsss.fif' % j)
     for j in range(1, 6))
@@ -89,7 +89,7 @@ for j in range(len(fname_list)):
 
 fig, axes = plt.subplots(5, 1)
 
-save_path = os.path.join('model_save_path', 'QYJ_%d')
+save_path = os.path.join('model_save_path', 'ZYF_%d')
 model_name = 'CNNmodel'
 for test_run in range(5):
     model_path = os.path.join(save_path % test_run, model_name)
@@ -113,8 +113,8 @@ for test_run in range(5):
     y_test = np.ravel(y_test)
 
     # CNN training and testing
-    # train_CNN(X_train, y_train-1, model_path=model_path)
-    restore_CNN(model_path=model_path)
+    train_CNN(X_train, y_train-1, model_path=model_path)
+    # restore_CNN(model_path=model_path+'-3500')
     y_guess = test_CNN(X_test)
 
     # Plot

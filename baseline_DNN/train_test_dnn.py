@@ -112,8 +112,8 @@ for test_run in range(5):
     y_train = np.ravel(y_train)
     y_test = np.ravel(y_test)
     # DNN training and testing
-    # train_DNN(X_train, y_train-1, model_path=model_path)
-    restore_DNN(model_path=model_path+'')
+    train_DNN(X_train, y_train-1, model_path=model_path)
+    # restore_DNN(model_path=model_path+'')
     y_guess = test_DNN(X_test)
     # Plot
     axe = axes[test_run]
