@@ -29,6 +29,7 @@ def scale(data):
 
 
 ranges = [250, 350, 550, 650]
+# ranges = [400, 500, 700, 800]
 range_id = [1, 2, 1]
 
 
@@ -69,9 +70,9 @@ fname_testing_list = list(os.path.join(
     for j in range(1, 9))
 ortids_training = [2, 6, 9, 14, 17, 33]
 ortids_testing = [8, 16, 32, 64]
-train = True
-ortids = ortids_training
-fname_list = fname_training_list
+train = False
+ortids = ortids_testing
+fname_list = fname_testing_list
 
 data_X = fname_list.copy()
 data_y = fname_list.copy()
@@ -112,8 +113,7 @@ for test_run in range(5):
     y_train = np.ravel(y_train)
     y_test = np.ravel(y_test)
 
-    # CNN training and testing
-    # train_CNN(X_train, y_train-1, model_path=model_path)
+    # CNN restore and testing
     restore_CNN(model_path=model_path)
     y_guess = test_CNN(X_test)
 
