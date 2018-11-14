@@ -59,8 +59,13 @@ def plot(X, y, axe, clf, title='title'):
     predict = np.ravel(predict)
 
 
+# check model_save_path
+model_path = 'model_save_path'
+assert(not(os.path.exists(model_path)))
+os.mkdir(model_path)
+
 # Prepare filename QYJ, ZYF
-filedir = 'D:/BeidaShuju/rawdata/ZYF'
+filedir = 'd:/BeidaShuju/rawdata/QYJ'
 fname_training_list = list(os.path.join(
     filedir, 'MultiTraining_%d_raw_tsss.fif' % j)
     for j in range(1, 6))
@@ -77,7 +82,7 @@ data_X = fname_list.copy()
 data_y = fname_list.copy()
 for j in range(len(fname_list)):
     print(fname_list[j])
-    epochs = get_epochs(fname=fname_list[j], train=train)
+    epochs = get_epochs(fname=fname_list[j], train=train, envlop=True)
     data = epochs.get_data()
     data_X[j] = ortids.copy()
     data_y[j] = ortids.copy()
@@ -89,7 +94,7 @@ for j in range(len(fname_list)):
 
 fig, axes = plt.subplots(5, 1)
 
-save_path = os.path.join('model_save_path_ZYF', 'ZYF_%d')
+save_path = os.path.join('model_save_path', 'QYJ_%d')
 model_name = 'CNNmodel'
 for test_run in range(5):
     model_path = os.path.join(save_path % test_run, model_name)
@@ -113,8 +118,8 @@ for test_run in range(5):
     y_test = np.ravel(y_test)
 
     # CNN training and testing
-    # train_CNN(X_train, y_train-1, model_path=model_path)
-    restore_CNN(model_path=model_path)
+    train_CNN(X_train, y_train-1, model_path=model_path)
+    # restore_CNN(model_path=model_path)
     y_guess = test_CNN(X_test)
 
     # Plot

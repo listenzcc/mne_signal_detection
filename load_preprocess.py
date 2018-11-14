@@ -5,6 +5,7 @@ import mne
 import numpy as np
 import matplotlib.pyplot as plt
 from pick_good_sensors import good_sensors
+from scipy import fftpack
 
 smooth_kernel = 1/200+np.array(range(200))*0
 
@@ -29,7 +30,23 @@ fname_list = fname_training_list
 fname = fname_list[3]
 
 
-def get_epochs(fname, train):
+def analysis_hilbert(x):
+    # Calculate hilbert analytical signal
+    y = fftpack.hilbert(x)
+    return np.sqrt(x**2 + y**2)
+
+
+def get_envlop(data, picks):
+    # Calculate envlop of high freq signal
+    # Using hilbert analytical signal
+    # picks: only transform signals, not markers
+    for j in picks:
+        # Calculate envlop of each sensor
+        data[j] = analysis_hilbert(data[j])
+    return data
+
+
+def get_epochs(fname, train, envlop=False):
     # Make defaults
     if train:
         event_id = dict(ort015=2,  ort045=6,  ort075=9,
@@ -50,8 +67,12 @@ def get_epochs(fname, train):
     picks = mne.pick_types(raw.info, meg=True, eeg=False,
                            eog=False, stim=False, exclude='bads')
     sensors, picks = good_sensors(raw.ch_names)
-    raw = mne.io.RawArray(smooth(raw.get_data(), picks), raw.info)
     raw.filter(freq_l, freq_h, fir_design='firwin')
+    if envlop:
+        raw = mne.io.RawArray(get_envlop(
+            smooth(raw.get_data(), picks), picks), raw.info)
+    else:
+        raw = mne.io.RawArray(smooth(raw.get_data(), picks), raw.info)
     events = mne.find_events(raw)
 
     # Get epochs
