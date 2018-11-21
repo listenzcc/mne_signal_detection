@@ -4,7 +4,7 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from tensorflow_network_cnn import train_CNN, test_CNN, restore_CNN
+from tensorflow_network_dnn import train_DNN, test_DNN, restore_DNN
 sys.path.append('..')
 from load_preprocess import get_epochs
 
@@ -30,7 +30,7 @@ ranges = [250, 350, 550, 650]
 range_id = [1, 2, 1]
 
 
-def get_Xy_from_data(data, ranges=ranges, span=40,
+def get_Xy_from_data(data, ranges=ranges,
                      range_id=range_id):
     X = []
     y = []
@@ -39,7 +39,7 @@ def get_Xy_from_data(data, ranges=ranges, span=40,
         left, right = ranges[k], ranges[k+1]
         id = range_id[k]
         for j in range(left, right):
-            X = vstack(X, data[:, :, j-span:j])
+            X = vstack(X, data[:, :, j])
             y = vstack(y, id+np.zeros(shape[0]).reshape(shape[0], 1))
     return X, y
 
@@ -62,8 +62,8 @@ model_path = 'model_save_path'
 '''
 attention here, don't mess up the saved model
 '''
-# assert(not(os.path.exists(model_path)))
-# os.mkdir(model_path)
+assert(not(os.path.exists(model_path)))
+os.mkdir(model_path)
 
 # Prepare filename QYJ, ZYF
 filedir = 'd:/BeidaShuju/rawdata/QYJ'
@@ -110,7 +110,7 @@ def merge(X, y, span=12, sample=5):
 
 
 save_path = os.path.join('model_save_path', 'QYJ_%d')
-model_name = 'CNNmodel'
+model_name = 'DNNmodel'
 
 fig, axes = plt.subplots(5, 1)
 
@@ -142,10 +142,10 @@ for shuffle_id in range(5):
     y_train = np.ravel(y_train)
     y_test = np.ravel(y_test)
 
-    # CNN training and testing
-    # train_CNN(X_train, y_train-1, model_path=model_path)
-    restore_CNN(model_path=model_path)
-    y_guess = test_CNN(X_test)
+    # DNN training and testing
+    train_DNN(X_train, y_train-1, model_path=model_path)
+    # restore_DNN(model_path=model_path)
+    y_guess = test_DNN(X_test)
 
     # Plot
     axe = axes[shuffle_id]

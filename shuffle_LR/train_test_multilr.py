@@ -3,11 +3,29 @@
 import os
 import sys
 import numpy as np
+import threading
 import matplotlib.pyplot as plt
-from tensorflow_network_cnn import train_CNN, test_CNN, restore_CNN
+from sklearn.linear_model import LogisticRegression
 sys.path.append('..')
 from load_preprocess import get_epochs
 
+def shuffle(X, y):
+    n = len(y)
+    s = np.array(range(n))
+    np.random.shuffle(s)
+    return X[s], y[s]
+
+
+def merge(X, y, span=12, sample=5):
+    mergedX = []
+    mergedy = []
+    for j in range(sample):
+        a, b = j*span, (j*span+span)
+        tmpX = scale(np.mean(X[a: b], 0)[np.newaxis, :])
+        tmpy = np.mean(y[a: b], 0)[np.newaxis, :]
+        mergedX = vstack(mergedX, tmpX)
+        mergedy = vstack(mergedy, tmpy)
+    return mergedX, mergedy
 
 def vstack(a, b):
     if len(a) == 0:
@@ -30,7 +48,7 @@ ranges = [250, 350, 550, 650]
 range_id = [1, 2, 1]
 
 
-def get_Xy_from_data(data, ranges=ranges, span=40,
+def get_Xy_from_data(data, ranges=ranges,
                      range_id=range_id):
     X = []
     y = []
@@ -39,7 +57,7 @@ def get_Xy_from_data(data, ranges=ranges, span=40,
         left, right = ranges[k], ranges[k+1]
         id = range_id[k]
         for j in range(left, right):
-            X = vstack(X, data[:, :, j-span:j])
+            X = vstack(X, data[:, :, j])
             y = vstack(y, id+np.zeros(shape[0]).reshape(shape[0], 1))
     return X, y
 
@@ -55,15 +73,11 @@ def plot(X, y, axe, clf, title='title'):
                  color='gray')
     y = np.ravel(y)
     predict = np.ravel(predict)
+    acc = np.count_nonzero(
+        (y > 1) == (predict > 1))/len(y)
+    title += ', acc %.2f' % acc
+    axe.set_title(title)
 
-
-# check model_save_path
-model_path = 'model_save_path'
-'''
-attention here, don't mess up the saved model
-'''
-# assert(not(os.path.exists(model_path)))
-# os.mkdir(model_path)
 
 # Prepare filename QYJ, ZYF
 filedir = 'd:/BeidaShuju/rawdata/QYJ'
@@ -89,33 +103,9 @@ for j in range(len(fname_list)):
     data_XX = vstack(data_XX, X)
     data_yy = vstack(data_yy, y.reshape(len(y), 1))
 
-
-def shuffle(X, y):
-    n = len(y)
-    s = np.array(range(n))
-    np.random.shuffle(s)
-    return X[s], y[s]
-
-
-def merge(X, y, span=12, sample=5):
-    mergedX = []
-    mergedy = []
-    for j in range(sample):
-        a, b = j*span, (j*span+span)
-        tmpX = scale(np.mean(X[a: b], 0)[np.newaxis, :])
-        tmpy = np.mean(y[a: b], 0)[np.newaxis, :]
-        mergedX = vstack(mergedX, tmpX)
-        mergedy = vstack(mergedy, tmpy)
-    return mergedX, mergedy
-
-
-save_path = os.path.join('model_save_path', 'QYJ_%d')
-model_name = 'CNNmodel'
-
 fig, axes = plt.subplots(5, 1)
 
 for shuffle_id in range(5):
-    model_path = os.path.join(save_path % shuffle_id, model_name)
 
     X_train = []
     y_train = []
@@ -139,21 +129,13 @@ for shuffle_id in range(5):
         X_test = vstack(X_test, tmp_X)
         y_test = vstack(y_test, tmp_y)
 
-    y_train = np.ravel(y_train)
-    y_test = np.ravel(y_test)
-
-    # CNN training and testing
-    # train_CNN(X_train, y_train-1, model_path=model_path)
-    restore_CNN(model_path=model_path)
-    y_guess = test_CNN(X_test)
-
-    # Plot
-    axe = axes[shuffle_id]
-    axe.plot(y_test)
-    axe.plot(y_guess)
-    acc = np.count_nonzero(
-        (y_test > 1) == (y_guess > 1))/len(y_test)
-    title = '%d, acc %.2f' % (shuffle_id, acc)
-    axe.set_title(title)
+    # MLR training and testing
+    clf = LogisticRegression(multi_class='multinomial',
+                             solver='newton-cg',
+                             penalty='l2')
+    clf.fit(X_train, np.ravel(y_train))
+    title = '%d' % shuffle_id
+    plot(X_test, y_test, axes[shuffle_id], clf, title=title)
+    print('%d done' % shuffle_id)
 
 plt.show()
