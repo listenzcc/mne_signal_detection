@@ -30,7 +30,7 @@ ranges = [250, 350, 550, 650]
 range_id = [1, 2, 1]
 
 
-def get_Xy_from_data(data, ranges=ranges, span=40,
+def get_Xy_from_data(data, ranges=ranges, span=80,
                      range_id=range_id):
     X = []
     y = []
@@ -62,8 +62,8 @@ model_path = 'model_save_path'
 '''
 attention here, don't mess up the saved model
 '''
-# assert(not(os.path.exists(model_path)))
-# os.mkdir(model_path)
+assert(not(os.path.exists(model_path)))
+os.mkdir(model_path)
 
 # Prepare filename QYJ, ZYF
 filedir = 'd:/BeidaShuju/rawdata/QYJ'
@@ -143,8 +143,8 @@ for shuffle_id in range(5):
     y_test = np.ravel(y_test)
 
     # CNN training and testing
-    # train_CNN(X_train, y_train-1, model_path=model_path)
-    restore_CNN(model_path=model_path)
+    train_CNN(X_train, y_train-1, model_path=model_path)
+    # restore_CNN(model_path=model_path)
     y_guess = test_CNN(X_test)
 
     # Plot
@@ -153,7 +153,9 @@ for shuffle_id in range(5):
     axe.plot(y_guess)
     acc = np.count_nonzero(
         (y_test > 1) == (y_guess > 1))/len(y_test)
-    title = '%d, acc %.2f' % (shuffle_id, acc)
+    acc_ = 1 - np.count_nonzero(y_test-y_guess)/len(y_test)
+
+    title = '%d, acc %.2f, %.2f' % (shuffle_id, acc, acc_)
     axe.set_title(title)
 
 plt.show()

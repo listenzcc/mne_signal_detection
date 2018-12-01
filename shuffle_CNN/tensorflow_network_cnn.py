@@ -30,20 +30,20 @@ def max_pool_1x2(x):
 # Init session
 sess = tf.InteractiveSession()
 # Placeholder x, y_
-x = tf.placeholder(tf.float32, shape=[None, 102, 40])
+x = tf.placeholder(tf.float32, shape=[None, 102, 80])
 y_ = tf.placeholder(tf.float32, shape=[None, 7])
 
-x_image = tf.reshape(x, [-1, 102, 40, 1])
+x_image = tf.reshape(x, [-1, 102, 80, 1])
 
 
 def para_init():
-    w_conv1 = weight_variable([1, 5, 1, 7])
-    b_conv1 = bias_variable([7])
+    w_conv1 = weight_variable([1, 7, 1, 10])
+    b_conv1 = bias_variable([10])
 
-    w_conv2 = weight_variable([1, 5, 7, 9])
-    b_conv2 = bias_variable([9])
+    w_conv2 = weight_variable([1, 7, 10, 15])
+    b_conv2 = bias_variable([15])
 
-    w_fc1 = weight_variable([102*10*9, 500])
+    w_fc1 = weight_variable([102*20*15, 500])
     b_fc1 = bias_variable([500])
 
     w_fc2 = weight_variable([500, 7])
@@ -60,7 +60,7 @@ h_pool1 = max_pool_1x2(h_conv1)
 h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2) + b_conv2)
 h_pool2 = max_pool_1x2(h_conv2)
 
-h_pool2_flat = tf.reshape(h_pool2, [-1, 102*10*9])
+h_pool2_flat = tf.reshape(h_pool2, [-1, 102*20*15])
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, w_fc1) + b_fc1)
 
 keep_prob = tf.placeholder(tf.float32)
