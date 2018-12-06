@@ -32,7 +32,7 @@ ranges = [250, 350, 550, 650]
 range_id = [1, 2, 1]
 
 
-def get_Xy_from_data(data, ranges=ranges,
+def get_Xy_from_data(data, ranges=ranges, span=100,
                      range_id=range_id):
     X = []
     y = []
@@ -41,7 +41,7 @@ def get_Xy_from_data(data, ranges=ranges,
         left, right = ranges[k], ranges[k+1]
         id = range_id[k]
         for j in range(left, right):
-            X = vstack(X, data[:, :, j-40:j])
+            X = vstack(X, data[:, :, j-span:j])
             y = vstack(y, id+np.zeros(shape[0]).reshape(shape[0], 1))
     return X, y
 

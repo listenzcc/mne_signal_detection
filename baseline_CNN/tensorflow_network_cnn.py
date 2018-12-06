@@ -27,26 +27,38 @@ def max_pool_1x2(x):
                           strides=[1, 1, 2, 1], padding='SAME')
 
 
+def max_pool_1x5(x):
+    # max_pool
+    return tf.nn.max_pool(x, ksize=[1, 1, 5, 1],
+                          strides=[1, 1, 5, 1], padding='SAME')
+
+
 # Init session
 sess = tf.InteractiveSession()
 # Placeholder x, y_
-x = tf.placeholder(tf.float32, shape=[None, 102, 40])
+x = tf.placeholder(tf.float32, shape=[None, 102, 100])
 y_ = tf.placeholder(tf.float32, shape=[None, 7])
 
-x_image = tf.reshape(x, [-1, 102, 40, 1])
+x_image = tf.reshape(x, [-1, 102, 100, 1])
+
+ch_conv1 = 7
+ch_conv2 = 14
+dim_fc = 500
 
 
-def para_init():
-    w_conv1 = weight_variable([1, 5, 1, 7])
-    b_conv1 = bias_variable([7])
+def para_init(ch_conv1=ch_conv1, ch_conv2=ch_conv2,
+              dim_fc=dim_fc):
 
-    w_conv2 = weight_variable([1, 5, 7, 9])
-    b_conv2 = bias_variable([9])
+    w_conv1 = weight_variable([1, 7, 1, ch_conv1])
+    b_conv1 = bias_variable([ch_conv1])
 
-    w_fc1 = weight_variable([102*10*9, 500])
-    b_fc1 = bias_variable([500])
+    w_conv2 = weight_variable([1, 5, ch_conv1, ch_conv2])
+    b_conv2 = bias_variable([ch_conv2])
 
-    w_fc2 = weight_variable([500, 7])
+    w_fc1 = weight_variable([102*4*ch_conv2, dim_fc])
+    b_fc1 = bias_variable([dim_fc])
+
+    w_fc2 = weight_variable([dim_fc, 7])
     b_fc2 = bias_variable([7])
 
     return w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2
@@ -55,12 +67,12 @@ def para_init():
 w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2 = para_init()
 
 h_conv1 = tf.nn.relu(conv2d(x_image, w_conv1) + b_conv1)
-h_pool1 = max_pool_1x2(h_conv1)
+h_pool1 = max_pool_1x5(h_conv1)
 
 h_conv2 = tf.nn.relu(conv2d(h_pool1, w_conv2) + b_conv2)
-h_pool2 = max_pool_1x2(h_conv2)
+h_pool2 = max_pool_1x5(h_conv2)
 
-h_pool2_flat = tf.reshape(h_pool2, [-1, 102*10*9])
+h_pool2_flat = tf.reshape(h_pool2, [-1, 102*4*ch_conv2])
 h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, w_fc1) + b_fc1)
 
 keep_prob = tf.placeholder(tf.float32)
@@ -69,7 +81,10 @@ h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)
 y_conv = tf.nn.softmax(tf.matmul(h_fc1_drop, w_fc2) + b_fc2)
 
 cross_entropy = -tf.reduce_sum(y_*tf.log(y_conv+1e-10))
-train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+
+train_step_1 = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+train_step_2 = tf.train.AdamOptimizer(1e-5).minimize(cross_entropy)
+
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
@@ -100,7 +115,7 @@ def next_batch(data, label, size):
     return batch
 
 
-def train_CNN(data, label, num=5000, size=1000,
+def train_CNN(data, label, num=5000, size=500,
               model_path='noname'):
     w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2 = para_init()
     # Ready to go
@@ -110,7 +125,10 @@ def train_CNN(data, label, num=5000, size=1000,
     for j in range(num+1):
         batch = next_batch(data, label, size=size)
         feed_dict = {x: batch[0], y_: batch[1], keep_prob: 0.5}
-        train_step.run(feed_dict=feed_dict)
+        if j < 3000:
+            train_step_1.run(feed_dict=feed_dict)
+        else:
+            train_step_2.run(feed_dict=feed_dict)
         if j % 100 == 0:
             loss = sess.run(cross_entropy,
                             feed_dict=feed_dict)
