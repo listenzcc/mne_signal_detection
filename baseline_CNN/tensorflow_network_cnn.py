@@ -115,7 +115,7 @@ def next_batch(data, label, size):
     return batch
 
 
-def train_CNN(data, label, num=5000, size=500,
+def train_CNN(data, label, num=5000, size=1000,
               model_path='noname'):
     w_conv1, b_conv1, w_conv2, b_conv2, w_fc1, b_fc1, w_fc2, b_fc2 = para_init()
     # Ready to go

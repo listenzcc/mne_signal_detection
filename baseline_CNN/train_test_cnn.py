@@ -37,6 +37,14 @@ def get_Xy_from_data(data, ranges=ranges, span=100,
     X = []
     y = []
     shape = data.shape
+    data = shift(data, ranges=ranges)
+    # test if shift works
+    # tested it works
+    # fig, axes = plt.subplots(2, 1)
+    # axes[0].plot(np.mean(data, 0).transpose())
+    # axes[1].plot(np.mean(data_, 0).transpose())
+    # plt.show()
+    # assert(1 == 0)
     for k in range(len(ranges)-1):
         left, right = ranges[k], ranges[k+1]
         id = range_id[k]
@@ -44,6 +52,35 @@ def get_Xy_from_data(data, ranges=ranges, span=100,
             X = vstack(X, data[:, :, j-span:j])
             y = vstack(y, id+np.zeros(shape[0]).reshape(shape[0], 1))
     return X, y
+
+
+def shift(data, ranges=ranges):
+    # I do not think this can be data driven method
+    assert(ranges == [250, 350, 550, 650])
+    ref = np.zeros(500)
+    for j in range(200, 300):
+        ref[j] = 1
+
+    shape = data.shape
+    s = np.zeros([shape[0], shape[1]])
+    for j in range(shape[0]):
+        for k in range(shape[1]):
+            d = data[j][k][200:700]
+            c = np.correlate(d, ref, 'same')
+            argmax = np.argmax(c)
+            # we assume center is on 200,
+            # equals to 400 in original range
+            s_ = argmax - 200
+            if s_ > 0:
+                # if s_ larger than center, left shift
+                d = data[j][k][s_::].copy()
+                data[j][k][0: len(d)] = d.copy()
+            if s_ < 0:
+                # if s_ smaller than center, right shift
+                # only shift 1000 points, enough now
+                data[j][k][-s_:-s_+1000] = data[j][k][0:1000].copy()
+
+    return data
 
 
 def plot(X, y, axe, clf, title='title'):
